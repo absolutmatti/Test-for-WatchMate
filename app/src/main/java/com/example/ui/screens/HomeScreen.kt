@@ -55,6 +55,10 @@ import com.example.ui.theme.AmberAccent
 import com.example.ui.theme.CyanNeon
 import com.example.ui.theme.CyanPrimary
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import com.example.ui.theme.TvBackground
@@ -149,14 +153,14 @@ fun TvNavigationBar(
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(TvSurface)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(start = 16.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         // App Logo & Title
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(end = 16.dp)
+            modifier = Modifier.padding(end = 12.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Tv,
@@ -179,8 +183,12 @@ fun TvNavigationBar(
             )
         }
 
-        // Navigation Tabs (D-Pad navigable)
+        // Navigation Tabs (D-Pad navigable) with horizontal & vertical content padding
+        // so that scaled focused tabs (especially outer tabs: Suche and Einstellungen)
+        // are never clipped by the edge of the container.
         LazyRow(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -188,7 +196,14 @@ fun TvNavigationBar(
                 val isSelected = currentTab == tab
                 val interactionSource = remember { MutableInteractionSource() }
                 val isFocused by interactionSource.collectIsFocusedAsState()
-                val tabScale = if (isFocused) 1.06f else 1.0f
+                val tabScale by animateFloatAsState(
+                    targetValue = if (isFocused) 1.06f else 1.0f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    ),
+                    label = "tabScale_${tab.name}"
+                )
 
                 val bgColor = when {
                     isSelected -> CyanPrimary
@@ -203,16 +218,11 @@ fun TvNavigationBar(
 
                 Surface(
                     modifier = Modifier
+                        .zIndex(if (isFocused) 2f else if (isSelected) 1f else 0f)
                         .graphicsLayer {
                             scaleX = tabScale
                             scaleY = tabScale
                         }
-                        .clip(RoundedCornerShape(10.dp))
-                        .border(
-                            width = if (isFocused) 3.5.dp else if (isSelected) 1.dp else 0.dp,
-                            color = if (isFocused) TvFocusBorder else if (isSelected) CyanPrimary else Color.Transparent,
-                            shape = RoundedCornerShape(10.dp)
-                        )
                         .focusable(interactionSource = interactionSource)
                         .clickable(
                             interactionSource = interactionSource,
@@ -221,7 +231,12 @@ fun TvNavigationBar(
                         )
                         .testTag("nav_tab_${tab.name}"),
                     color = bgColor,
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    border = when {
+                        isFocused -> BorderStroke(3.5.dp, TvFocusBorder)
+                        isSelected -> BorderStroke(1.dp, CyanPrimary)
+                        else -> null
+                    }
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
