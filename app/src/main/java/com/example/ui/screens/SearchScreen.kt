@@ -137,8 +137,6 @@ fun SearchScreen(
         }
     }
 
-    val quickSearches = listOf("Dune", "Stranger Things", "Severance", "Breaking Bad", "Inception", "Arcane", "Interstellar")
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -256,61 +254,6 @@ fun SearchScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("Sprachsuche", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Quick Search Suggestions
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Beliebt:",
-                color = Color.Gray,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(quickSearches) { suggestion ->
-                    val chipInteraction = remember { MutableInteractionSource() }
-                    val isChipFocused by chipInteraction.collectIsFocusedAsState()
-                    val chipScale = if (isChipFocused) 1.06f else 1.0f
-
-                    Surface(
-                        modifier = Modifier
-                            .graphicsLayer {
-                                scaleX = chipScale
-                                scaleY = chipScale
-                            }
-                            .clip(RoundedCornerShape(8.dp))
-                            .border(
-                                width = if (isChipFocused) 3.dp else 1.dp,
-                                color = if (isChipFocused) TvFocusBorder else Color(0xFF334155),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .focusable(interactionSource = chipInteraction)
-                            .clickable(
-                                interactionSource = chipInteraction,
-                                indication = null
-                            ) {
-                                localText = suggestion
-                                onQueryChanged(suggestion)
-                                onSearchSubmit(suggestion)
-                            },
-                        color = if (isChipFocused) TvFocusBg else TvCardBg,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = suggestion,
-                            color = if (isChipFocused) TvFocusBorder else CyanNeon,
-                            fontSize = 12.sp,
-                            fontWeight = if (isChipFocused) FontWeight.Bold else FontWeight.Medium,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                        )
-                    }
                 }
             }
         }
